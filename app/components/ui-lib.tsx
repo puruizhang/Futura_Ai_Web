@@ -90,6 +90,7 @@ export function Loading() {
       }}
     >
       <LoadingIcon />
+      123
     </div>
   );
 }
@@ -458,6 +459,7 @@ export function Selector<T>(props: {
               <ListItem
                 className={styles["selector-item"]}
                 key={i}
+                // icon={<DownIcon/>}
                 title={item.title}
                 subTitle={item.subTitle}
                 onClick={() => {

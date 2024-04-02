@@ -176,8 +176,10 @@ export const useChatStore = createPersistStore(
       },
 
       newSession(mask?: Mask) {
-        const session = createEmptySession();
-
+        console.log(mask)
+        let session = createEmptySession();
+        session.mask.modelConfig.model='GPT-3.5-TURBO';
+        console.log(session)
         if (mask) {
           const config = useAppConfig.getState();
           const globalModelConfig = config.modelConfig;

@@ -5,13 +5,13 @@
   align-items: center;
   height: 60%;
   margin: auto;
-  width: 80%;
+  width: 100%;
   flex-direction: column;
-  border-radius: 1em;
-  padding: 3em 3em 5%;
+
+  padding: 0em 1em 5%;
   max-width: 1150px;
   padding-bottom: 5% !important;
-  box-shadow: 0 24px 40px rgba(0,0,0,.07), 0 10.8529px 24.1177px rgba(0,0,0,.0456112), 0 4.50776px 10.0172px rgba(0,0,0,.035), 0 1.63037px 3.62304px rgba(0,0,0,.0243888);
+
 
   .auth-logo {
     transform: scale(1.4);
@@ -28,8 +28,8 @@
   }
 
   .auth-input {
-    width: 30%;
-    margin: 3vh 0;
+    width: 100%;
+    margin: 2vh 0;
   }
   .auth-input-code {
     width: 23%;
@@ -91,13 +91,13 @@
   .forgot-div {
     position: absolute;
     top: 50px;
-    left: 63%;
+    left: 70%;
   }
 
   .reg-div {
     position: absolute;
     top: 50px;
-    left: 32%;
+    left: 17%;
   }
 
   .forgotpassword{
@@ -108,7 +108,7 @@
   }
   .forgotForm{
     margin-bottom: 20px;
-    width: 30%;
+    width: 50%;
     display: flex;
   }
   .forgotFormSendCode{
@@ -119,10 +119,15 @@
   }
   .forgotFormUpdateButton{
     margin-left: 0;
-    width: 38%;
+    width: 64%;
   }
 
   .loginButton{
-    width: 38%;
+    width: 68%;
   }
+
+}
+
+.ant-carousel{
+  width: 50% !important;
 }

@@ -3,11 +3,12 @@ import styles from "./home.module.scss";
 import { useAccessStore } from "../store";
 import { useLocation } from "react-router-dom";
 import API_BASE_URL from "../../config";
-import {showToast} from "./ui-lib";
 import {IconButton} from "./button";
 import FGptPng from "../icons/fgpt.png";
+import { Button, message, Space } from 'antd';
 
 export function Active() {
+    const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
     const location = useLocation(); // 在组件的顶层作用域中使用 useLocation 钩子
     const accessStore = useAccessStore(); // 在组件的顶层作用域中使用 useAccessStore 钩子
@@ -24,7 +25,7 @@ export function Active() {
             .then(response => response.json())
             .then(data => {
                 if(!data.success){
-                    showToast(data.data,undefined,3000)
+                    message.error(data.data);
                     // 请求完成，loading 结束
                     setIsLoading(false);
                     return;
@@ -35,7 +36,8 @@ export function Active() {
                 );
                 // 请求完成，loading 结束
                 setIsLoading(false);
-                showToast('激活成功，页面即将自动跳转！',undefined,3000)
+                message.success('激活成功，页面即将自动跳转！');
+
                 // 跳转到首页
                 setTimeout(() => {
                     window.location.href = '/';
@@ -44,6 +46,7 @@ export function Active() {
             .catch(error => {
                 console.error('Error:', error);
                 // 处理错误情况
+                messageApi.error('请求失败，请稍后再试！');
             });
     }
 

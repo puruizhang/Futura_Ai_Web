@@ -5,30 +5,35 @@ import {BuyPage} from "./buy";
 require("../polyfill");
 
 import React, { useState, useEffect } from "react";
+import ImgCrop from 'antd-img-crop';
 import styles from "./home.module.scss";
 import HomeIcon from "../icons/home.svg";
 import CloseIcon from "../icons/close.svg";
-import LiaotianIcon from "../icons/liaotian.svg";
-import AppIcon from "../icons/app.svg";
-import DrawIcon from "../icons/draw.svg";
+import LiaotianIcon from "../icons/聊天.svg";
+import AppIcon from "../icons/首页.svg";
+import DrawIcon from "../icons/huihua.svg";
+import AIMusicIcon from "../icons/AI音乐.svg";
+import WiritingIcon from "../icons/写作.svg";
 import BotIcon from "../icons/bot.svg";
 import NoticeIcon from "../icons/notice.svg";
 import BotIconPng from "../icons/bot.png";
-import FGptPng from "../icons/fgpt.png";
-import xhPng from "../icons/小红书写手.png";
-import xlPng from "../icons/新的聊天.png";
-import zyPng from "../icons/职业顾问.png";
-import Case1Png from "../icons/case1.png";
-import PromptIcon from "../icons/prompt.svg";
+import FGpt from "../icons/fgpt.png";
+import FGptPng from "../icons/router.svg";
+import GPTZhuanPng from "../icons/gpt_zhuan.png";
+import UptimeIcon from "../icons/uptime.svg";
+import XiaoDianPng from "../icons/futura_dian.png";
+import SubscribeIcon from "../icons/订阅.svg";
+import SubscribePointIcon from "../icons/订阅积分.svg";
+import ModelPriceIcon from "../icons/模型价格.svg";
+import InstructionsIcon from "../icons/使用说明.svg";
 import LoadingIcon from "../icons/three-dots.svg";
-import BrainIcon from "../icons/brain.svg";
+import BrainIcon from "../icons/积分.svg";
 import {copyToClipboard, getCSSVar, useMobileScreen} from "../utils";
 import DragIcon from "../icons/drag.svg";
 import dynamic from "next/dynamic";
 import { Path, SlotID } from "../constant";
 import { ErrorBoundary } from "./error";
 import Locale, { getISOLang, getLang } from "../locales";
-import MaskIcon from "../icons/mask.svg";
 import data from './../data/prompt_zh.json';
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
@@ -56,19 +61,25 @@ import ClearIcon from "../icons/clear.svg";
 import EditIcon from "../icons/edit.svg";
 import EyeIcon from "../icons/eye.svg";
 import CopyIcon from "../icons/copy.svg";
-import {Button} from "emoji-picker-react/src/components/atoms/Button";
 import ResetIcon from "../icons/reload.svg";
 import Image from "next/image";
 import API_BASE_URL from "../../config";
 import {Drawing} from "./drawing";
 import {show} from "cli-cursor";
+import {Avatar, Button, Divider, GetProp, message, Spin, Upload, UploadFile, UploadProps} from "antd";
+import {LoadingOutlined, PlusOutlined, UploadOutlined, UserOutlined} from "@ant-design/icons";
+import {FileType} from "next/dist/lib/file-exists";
+import Qrcode from "../icons/qrcode_for_gh_d07539c306c7_344.jpg";
+import Wechat from "../icons/wechat.png";
+import tr from "../locales/tr";
+import {Writing} from "./writing";
+import {Music} from "./music";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
-    <div className={styles["loading-content"] + " no-dark"}>
-      {!props.noLogo && <BotIcon />}
-      <LoadingIcon />
-    </div>
+      <Spin tip="" size="large">
+        <div className="content" />
+      </Spin>
   );
 }
 
@@ -176,7 +187,7 @@ function Screen() {
   const isMobileScreen = useMobileScreen();
   const shouldTightBorder = getClientConfig()?.isApp || (config.tightBorder && !isMobileScreen);
   const [currentPage, setCurrentPage] = useState("chat");
-  const [userInfo, setUserInfo] = useState<{ userName: string, avatarUrl: string } | null>(null);
+  const [userInfo, setUserInfo] = useState<{ userName: string, avatarUrl: string,email: string,openId: string } | null>(null);
   const accessStore = useAccessStore.getState();
   const [showLogoutButton, setShowLogoutButton] = useState(false);
   const [showModal, setShowModal] = useState(false); // 控制模态窗口的显示与隐藏
@@ -187,6 +198,8 @@ function Screen() {
   const [isActiveStatuView, setIsActiveStatuView] = useState(false);
   // 公告
   const [showPrompt, setShowPrompt] = useState(true);
+
+  const [showNavigation, setShowNavigation] = useState(false);
 
   const setModelhidden = () =>{
     setShowModal(false)
@@ -264,11 +277,29 @@ function Screen() {
   };
 
   const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [isUserInfoLoading, setIsUserInfoLoading] = useState(false);
   const [isExhangeCodeLoading, setIsExhangeCodeLoading] = useState(false);
 
   const [shuomingMarkdownContent, setShuomingMarkdownContent] = useState('');
   const [modelMarkdownContent, setModelMarkdownContent] = useState('');
+
+  const [signToday, setSignToday] = useState(false);
+
+  const [showBindWx, setShowBindWx] = useState(false);
+  const [showBindEmail, setShowBindEmail] = useState(false);
+  const [bindEmail, setBindEmail] = useState('');
+  const [emailBindVCode, setEmailBindVCode] = useState('');
+  
+  const showBindWxConf = () =>{
+    setShowBindWx(true);
+    setShowBindEmail(false);
+  }
+
+  const showBindEmailConf = () =>{
+    setShowBindWx(false);
+    setShowBindEmail(true);
+  }
 
   const [isEdituserInfo, setIsEdituserInfo] = useState(false);
   const updateConfig = config.update;
@@ -276,6 +307,93 @@ function Screen() {
   const handleQQClick = () => {
     window.location.href = `https://wpa.qq.com/msgrd?v=3&uin=${qqNumber}&site=qq&menu=yes&jumpflag=1`;
   };
+
+  function emailBindSendCode(): Promise<Response> {
+    return new Promise((resolve, reject) => {
+      // 发送验证码的逻辑
+      // setEmailBindVCode(''); // 设置发送验证码的状态
+
+      // 发起向后台的请求
+      fetch(`${API_BASE_URL}/v1/api/bindUserEmailCodeSend`, {
+        method: 'POST',
+        headers: {
+          Token: `${accessStore.accessCode}`, // 使用访问令牌进行身份验证
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: bindEmail,
+        })
+      })
+          .then(response => response.json())
+          .then(data => {
+            // 处理响应数据
+            if (!data.success) {
+              message.error(data.data)
+              return false;
+            }
+            message.success(data.data);
+            return true;
+          })
+          .catch((error) => {
+            // 处理错误
+            console.error(error);
+            message.error(error)
+            return false;
+          });
+    });
+  }
+
+
+  // 签到操作
+  const signClick = () => {
+    // 发起向后台的请求
+    fetch(`${API_BASE_URL}/v1/api/sign`, {
+      method: 'POST',
+      headers: {
+        Token: `${accessStore.accessCode}`, // 使用访问令牌进行身份验证
+        'Content-Type': 'application/json',
+      },
+    })
+        .then(response => response.json())
+        .then(data => {
+          // 处理响应数据
+          if(!data.success){
+            message.error(data.data)
+            return;
+          }
+          message.success(data.data);
+          setSignToday(true);
+        })
+        .catch((error) => {
+          // 处理错误
+          console.error(error);
+          message.error(error)
+        });
+  }
+
+  const getSignTodayStatus = () => {
+// 发起向后台的请求
+    fetch(`${API_BASE_URL}/v1/api/signToDay`, {
+      method: 'GET',
+      headers: {
+        Token: `${accessStore.accessCode}`, // 使用访问令牌进行身份验证
+      },
+    })
+        .then(response => response.json())
+        .then(data => {
+          // 处理响应数据
+          if(!data.success){
+            message.error(data.data)
+            return;
+          }
+          setSignToday(data.data);
+        })
+        .catch((error) => {
+          // 处理错误
+          console.error(error);
+          message.error(error)
+        });
+  }
 
   const handleUserNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUserName(event.currentTarget.value);
@@ -401,14 +519,237 @@ function Screen() {
     }
 
   }
+  // interface OSSDataType {
+  //   dir: string;
+  //   expire: string;
+  //   host: string;
+  //   accessId: string;
+  //   policy: string;
+  //   signature: string;
+  // }
+  //
+  // interface AliyunOSSUploadProps {
+  //   value?: UploadFile[];
+  //   onChange?: (fileList: UploadFile[]) => void;
+  // }
+  //
+  // const AliyunOSSUpload = ({ value, onChange }: AliyunOSSUploadProps) => {
+  //   const [OSSData, setOSSData] = useState<OSSDataType>();
+  //   const accessStore = useAccessStore.getState();
+  //   // Mock get OSS api
+  //   // https://help.aliyun.com/document_detail/31988.html
+  //   // const mockGetOSSData = () => ({
+  //   //     dir: 'user-dir/',
+  //   //     expire: '1577811661',
+  //   //     host: '//www.mocky.io/v2/5cc8019d300000980a055e76',
+  //   //     accessId: 'c2hhb2RhaG9uZw==',
+  //   //     policy: 'eGl4aWhhaGFrdWt1ZGFkYQ==',
+  //   //     signature: 'ZGFob25nc2hhbw==',
+  //   // });
+  //
+  //   const getOssToken = async () => {
+  //     fetch(`${API_BASE_URL}/v1/api/oss/generateToken`, {
+  //       method: 'GET',
+  //       headers: {
+  //         Token: `${accessStore.accessCode}`, // 使用访问令牌进行身份验证
+  //       },
+  //     })
+  //         .then(response => response.json())
+  //         .then(data => {
+  //           // 处理返回的用户信息数据
+  //           if(data.success){
+  //             setOSSData(data.data);
+  //           }else{
+  //             showToast('请求频繁,请稍后再试！')
+  //           }
+  //         })
+  //         .catch(error => {
+  //           console.error('Error:', error);
+  //           // 处理错误情况
+  //         });
+  //   }
+  //
+  //   useEffect(() => {
+  //     getOssToken();
+  //   }, []);
+  //
+  //   const handleChange: UploadProps['onChange'] = ({ fileList }) => {
+  //     console.log('Aliyun OSS:', fileList);
+  //     onChange?.([...fileList]);
+  //   };
+  //
+  //   const onRemove = (file: UploadFile) => {
+  //     const files = (value || []).filter((v) => v.url !== file.url);
+  //
+  //     if (onChange) {
+  //       onChange(files);
+  //     }
+  //   };
+  //
+  //   const getExtraData: UploadProps['data'] = (file) => ({
+  //     key: file.url,
+  //     OSSAccessKeyId: OSSData?.accessId,
+  //     policy: OSSData?.policy,
+  //     Signature: OSSData?.signature,
+  //   });
+  //
+  //   const beforeUpload: UploadProps['beforeUpload'] = async (file) => {
+  //     if (!OSSData) return false;
+  //
+  //     const expire = Number(OSSData.expire) * 1000;
+  //
+  //     if (expire < Date.now()) {
+  //       await getOssToken();
+  //     }
+  //
+  //     const suffix = file.name.slice(file.name.lastIndexOf('.'));
+  //     const filename = Date.now() + suffix;
+  //     // @ts-ignore
+  //     file.url = OSSData.dir + filename;
+  //
+  //     return file;
+  //   };
+  //
+  //   const uploadProps: UploadProps = {
+  //     name: 'file',
+  //     fileList: value,
+  //     action: OSSData?.host,
+  //     onChange: handleChange,
+  //     onRemove,
+  //     data: getExtraData,
+  //     beforeUpload,
+  //   };
+  //
+  //   return (
+  //       // <Upload {...uploadProps}>
+  //       //   <Button icon={<UploadOutlined />}>Click to Upload</Button>
+  //       // </Upload>
+  //
+  //   <ImgCrop rotationSlider>
+  //     <Upload {...uploadProps}
+  //         name="avatar"
+  //         listType="picture-circle"
+  //         className="avatar-uploader"
+  //         showUploadList={false}
+  //     >
+  //       <Avatar
+  //           size={{ xs: 24, sm: 32, md: 40, lg: 64, xl: 64, xxl: 90 }}
+  //           className={styles.userAvatar} src={<img src={userInfo?.avatarUrl || ''} alt="个人中心" />} />
+  //     </Upload>
+  //   </ImgCrop>
+  //   );
+  // };
+
+  type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
+  const uploadFileUrl = API_BASE_URL + '/v1/api/uploadAvatar';
+  const getBase64 = (img: FileType, callback: (url: string) => void) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => callback(reader.result as string));
+    reader.readAsDataURL(img);
+  };
+  const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>();
+
+  const handleChange: UploadProps['onChange'] = (info) => {
+    console.log(info)
+    if (info.file.status === 'uploading') {
+      setLoading(true);
+      return;
+    }
+    if (info.file.status === 'done') {
+      if(200 != info.file.response.code){
+        // 提示上传失败
+        showToast(info.file.response.message);
+      }else{
+        getUserInfo();
+        // info.file.response.data;
+      }
+    }
+  };
+  const beforeUpload = (file: FileType) => {
+    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+    if (!isJpgOrPng) {
+      message.error('你只能上传 JPG/PNG 文件!');
+    }
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      message.error('图片大小需要小于 2MB!');
+    }
+    return isJpgOrPng && isLt2M;
+  };
+
+  const [wxBindVCode, setWxBindVCode] = useState('');
+
+  
+
+  const emailBind = () =>{
+    // 校验输入框的内容
+    if (!bindEmail.length) {
+      message.error('请输入邮箱');
+      return;
+    }
+    if (!emailBindVCode.length) {
+      message.error('请输入验证码');
+      return;
+    }
+    const loginResponse = fetch(`${API_BASE_URL}/v1/api/emailBind`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Token': accessStore.accessCode,
+      },
+      body: JSON.stringify({
+        email: bindEmail,
+        bindCode: emailBindVCode,
+      }),
+    }) .then(response => response.json())
+        .then(data => {
+          if(data.success){
+            message.success(data.data)
+            // 重新获取用户信息
+            getUserInfo()
+            setShowBindEmail(false);
+          }else{
+            message.error(data.data);
+          }
+        })
+  }
+  
+  const wxBind = () =>{
+    // 校验输入框的内容
+    if (!wxBindVCode.length) {
+      message.error('请输入验证码');
+      return;
+    }
+    const loginResponse = fetch(`${API_BASE_URL}/v1/api/wxBind`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Token': accessStore.accessCode,
+      },
+      body: JSON.stringify({
+        bindCode: wxBindVCode,
+      }),
+    }) .then(response => response.json())
+        .then(data => {
+          if(data.success){
+            message.success(data.data)
+            // 重新获取用户信息
+            getUserInfo()
+            setShowBindWx(false);
+          }else{
+            message.error(data.data);
+          }
+        })
+  }
 
   useEffect(() => {
-    getUserInfo()
+    getSignTodayStatus();
+    getUserInfo();
     getPoint(true);
-
     const readMarkdownFile = () => {
       try {
-        fetch('https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E.md')
+        fetch('https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E20240401.md')
             .then(response => {
               if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -421,7 +762,7 @@ function Screen() {
             .catch(error => {
               console.error('Error fetching file:', error);
             });
-        fetch('https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/%E6%A8%A1%E5%9E%8B%E4%BB%B7%E6%A0%BC.md')
+        fetch('https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/%E6%A8%A1%E5%9E%8B%E4%BB%B7%E6%A0%BC20240401.md')
             .then(response => {
               if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -469,13 +810,111 @@ function Screen() {
           }
       >
         <div className={styles.menuContainer}>
+
           <div className={`${styles.menuLogo}`}>
-            <img src={FGptPng.src}
-                 style={{borderRadius: '20px',marginBottom: '20px'}}
-                 width={50}
-                 height={50}
-                 alt="bot"
-            />
+            <FGptPng style={{cursor: 'pointer',width:'2em',height:'1.5em'}} onClick={() => setShowNavigation(!showNavigation)}/>
+            { showNavigation && (
+                <div className={styles.menuRouterText}>
+                  <ul className={styles.menuRouterul}>
+                    <li className={styles.menuRouterli}>
+                      <a href='https://pay-chat.mafutura.top' target='_blank' className={styles.menu_menuRouterA}>
+                        <img src={XiaoDianPng.src}
+                             style={{maxWidth: '150px',
+                               maxHeight: '45px',marginTop: '5px',border: '1px solid #f0f0f0' }}
+                        />
+                        <div style={{textAlign:'left',marginLeft:'10px'}}>
+                          <div style={{boxSizing: 'border-box',
+                            margin: 0,
+                            padding: 0,
+                            color: 'rgba(0, 0, 0, 0.88)',
+                            fontSize: '14px',
+                            lineHeight: '1.5714285714285714',
+                            listStyle: 'none'}}>Futura 小店铺</div>
+                          <span style={{color: 'rgba(0, 0, 0, 0.65)',
+                            fontSize: '12px',
+                            lineHeight: '20px'}}>快来看看，什么都有哦</span>
+                        </div>
+
+                      </a>
+
+                    </li>
+                    <li className={styles.menuRouterli}>
+                      <a href='https://futura.bestzpr.cn' target='_blank' className={styles.menu_menuRouterA}>
+                        <img src={FGpt.src}
+                             style={{maxWidth: '150px',
+                               maxHeight: '45px',marginTop: '5px',border: '1px solid #f0f0f0' }}
+                        />
+                        <div style={{textAlign:'left',marginLeft:'10px'}}>
+                          <div style={{boxSizing: 'border-box',
+                            margin: 0,
+                            padding: 0,
+                            color: 'rgba(0, 0, 0, 0.88)',
+                            fontSize: '14px',
+                            lineHeight: '1.5714285714285714',
+                            listStyle: 'none'}}>Futura AI</div>
+                          <span style={{color: 'rgba(0, 0, 0, 0.65)',
+                            fontSize: '12px',
+                            lineHeight: '20px'}}>通用AI大模型、绘画支持网站</span>
+                        </div>
+
+                      </a>
+
+                    </li>
+
+
+                  </ul>
+
+                  <ul className={styles.menuRouterul}>
+                    <li className={styles.menuRouterli}>
+                      <a href='https://uptime.bestzpr.cn/status/futura' target='_blank' className={styles.menu_menuRouterA}>
+                        {/*<img src={UptimeIcon.src}*/}
+                        {/*     style={{maxWidth: '150px',*/}
+                        {/*       maxHeight: '45px',marginTop: '5px',border: '1px solid #f0f0f0' }}*/}
+                        {/*/>*/}
+                        <UptimeIcon width='100px' style={{marginTop: '5px',border: '1px solid #f0f0f0'}}/>
+                        <div style={{textAlign:'left',marginLeft:'10px'}}>
+                          <div style={{boxSizing: 'border-box',
+                            margin: 0,
+                            padding: 0,
+                            color: 'rgba(0, 0, 0, 0.88)',
+                            fontSize: '14px',
+                            lineHeight: '1.5714285714285714',
+                            listStyle: 'none'}}>Futura 服务状态</div>
+                          <span style={{color: 'rgba(0, 0, 0, 0.65)',
+                            fontSize: '12px',
+                            lineHeight: '20px'}}>服务监控</span>
+                        </div>
+
+                      </a>
+
+                    </li>
+                    <li className={styles.menuRouterli}>
+                      <a href='https://ai-api.mafutura.top' target='_blank' className={styles.menu_menuRouterA}>
+                        <img src={GPTZhuanPng.src}
+                             style={{maxWidth: '150px',
+                               maxHeight: '45px',marginTop: '5px',border: '1px solid #f0f0f0' }}
+                        />
+                        <div style={{textAlign:'left',marginLeft:'10px'}}>
+                          <div style={{boxSizing: 'border-box',
+                            margin: 0,
+                            padding: 0,
+                            color: 'rgba(0, 0, 0, 0.88)',
+                            fontSize: '14px',
+                            lineHeight: '1.5714285714285714',
+                            listStyle: 'none'}}>Futura API接口</div>
+                          <span style={{color: 'rgba(0, 0, 0, 0.65)',
+                            fontSize: '12px',
+                            lineHeight: '20px'}}>提供中转接口，个人开发者必备</span>
+                        </div>
+
+                      </a>
+
+                    </li>
+                  </ul>
+                </div>
+            )}
+
+
           </div>
           <div className={`${styles.menuA} ${currentPage === "home" ? styles.active : ""}`}>
 
@@ -497,66 +936,114 @@ function Screen() {
             <LiaotianIcon className={styles.menuLogoIcon}/>
             <div>聊天</div>
           </a>
+          <a
+              href="#"
+              className={`${styles.menuA} ${currentPage === "draw" ? styles.active : ""}`}
+              onClick={() => handleMenuClick("draw")}
+          >
+            <DrawIcon className={styles.menuLogoIcon}/>
+            <div>绘画</div>
+          </a>
           {userInfo && (
-              <a
-                  href="#"
-                  className={`${styles.menuA} ${currentPage === "draw" ? styles.active : ""}`}
-                  onClick={() => handleMenuClick("draw")}
-              >
-                <DrawIcon className={styles.menuLogoIcon}/>
-                <div>绘画</div>
-              </a>
+              <>
+                <a
+                    href="#"
+                    className={`${styles.menuA} ${currentPage === "wrting" ? styles.active : ""}`}
+                    onClick={() => handleMenuClick("writing")}
+                >
+                  <WiritingIcon className={styles.menuLogoIcon}/>
+                  <div>写作</div>
+                </a>
+                <a
+                    href="#"
+                    className={`${styles.menuA} ${currentPage === "music" ? styles.active : ""}`}
+                    onClick={() => handleMenuClick("music")}
+                >
+                  <AIMusicIcon className={styles.menuLogoIcon}/>
+                  <div>AI音乐</div>
+                </a>
+              </>
           )}
 
-          <a
-              href="https://www.mmingsheng.com//links/1524B794" target={"_blank"}
-              className={`${styles.menuA} ${currentPage === "buy" ? styles.active : ""}`}
-          >
-            订阅
-          </a>
+          {/*<a*/}
+          {/*    href="https://pay-chat.mafutura.top/" target={"_blank"}*/}
+          {/*    className={`${styles.menuA} ${currentPage === "buy" ? styles.active : ""}`}*/}
+          {/*>*/}
+          {/*  <SubscribeIcon className={styles.menuLogoIcon}/>*/}
+          {/*  <div>订阅</div>*/}
+          {/*</a>*/}
           <a
               onClick={() => handleMenuClick("model")}
               className={`${styles.menuA} ${currentPage === "model" ? styles.active : ""}`}
           >
-            模型价格
+            <ModelPriceIcon className={styles.menuLogoIcon}/>
+            <div>价格</div>
           </a>
           <a
               onClick={() => handleMenuClick("shuoming")}
               className={`${styles.menuA} ${currentPage === "shuoming" ? styles.active : ""}`}
           >
-            使用说明
+            <InstructionsIcon className={styles.menuLogoIcon}/>
+            <div>说明</div>
           </a>
 
 
 
           {userInfo && !isActiveStatuView && (
-              <div>
-                <div
-                    onClick={() => handleMenuClick("userInfo")}
-                    className={styles.userLogo}
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                >
+              <div
+                  onClick={() => handleMenuClick("userInfo")}
+                  className={styles.userLogo}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+              >
+                <Avatar
+                    size={{ xs: 24, sm: 32, md: 40, lg: 64, xl: 64, xxl: 64 }}
+                    className={styles.userAvatar} src={<img src={userInfo?.avatarUrl || ''} alt="个人中心" />} />
 
-                  <img className={styles.userAvatar} src={userInfo?.avatarUrl || ''} alt={"个人中心"}/>
-                  {showLogoutButton && (
-                      <div className={styles.logOutDiv}>
-                        个人中心
-                        {/*<a href="#" className={styles.logOut} onClick={async () => {*/}
-                        {/*  if (await showConfirm("确认退出吗？")) {*/}
-                        {/*    accessStore.update(*/}
-                        {/*        (access) => (access.accessCode = ''),*/}
-                        {/*    );*/}
-                        {/*    // 跳转到首页*/}
-                        {/*    window.location.href = '/';*/}
-                        {/*  }*/}
-                        {/*}}>退出</a>*/}
-                      </div>
-                  )}
+                <Button
+                    onClick={async () => {
+                      if (await showConfirm("确认退出吗？")){
+                        accessStore.update(
+                            (access) => (access.accessCode = ''),
+                        );
+                        // 跳转到首页*/}
+                        window.location.href = '/';
+                      }
+                    }}
+                    className={styles.userInfoLogout}
+                    block>退出登录</Button>
+                {/*<img className={styles.userAvatar} src={userInfo?.avatarUrl || ''} alt={"个人中心"}/>*/}
+                {showLogoutButton && (
+                    <div className={styles.logOutDiv}>
+                      个人中心
+                      {/*<a href="#" className={styles.logOut} onClick={async () => {*/}
+                      {/*  if (await showConfirm("确认退出吗？")) {*/}
+                      {/*    accessStore.update(*/}
+                      {/*        (access) => (access.accessCode = ''),*/}
+                      {/*    );*/}
+                      {/*    // 跳转到首页*/}
+                      {/*    window.location.href = '/';*/}
+                      {/*  }*/}
+                      {/*}}>退出</a>*/}
+                    </div>
+                )}
 
-                </div>
               </div>
 
+          )}
+          {!userInfo && (
+              <div
+                  className={styles.userLogo}
+                  onClick={() => handleMenuClick("login")}
+              >
+                {/*<span className={styles.userAvatar_notlogin} >登录</span>*/}
+                <Avatar
+                    size={{ xs: 24, sm: 32, md: 40, lg: 64, xl: 64, xxl: 64 }}
+                    style={{ backgroundColor: 'var(--primary)' }} icon={<UserOutlined />} />
+                {/*<a href='#' className={styles.userAvatar_notlogin}>登录</a>*/}
+                {/*<img className={styles.userAvatar} src='https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_web/WX20240315-143017.png'/>*/}
+                {/*<Button className={styles.logOut} onClick={() => handleMenuClick("login")}>登录</Button>*/}
+              </div>
           )}
           {showModal && showPrompt && (
               <div className={styles.modal}>
@@ -586,27 +1073,15 @@ function Screen() {
                 >
                  <div>
                     <h1>欢迎使用 Futura AI</h1>
-                    <span>进群👗联系：zpr110010010；提供bug或是有效建议将会获得积分大礼包奖励🥇</span>
-                   <p>
-                     📌1.重磅来袭 Claude 3.0 亮相，全新的模型，全新的体验，全新的未来！
-                     Claude 3 拥有人类般的理解能力，能学习冷门语言、领悟量子物理理论，还意识到人类在测试它。
-                     你可以在这里体验到最新的模型，最新的技术，最新的体验，最新的未来！
+                    <span>通过每日签到可获🉐 1000 积分</span>
+                     <p style={{textAlign:'left'}}>
+                      本次更新点:
+                     <li style={{ textDecoration: 'none'}}>📌1.全新UI样式更新，优化使用体验</li>
+                     <li style={{ textDecoration: 'none'}}>📌2.写作模块、AI 音乐模块上线</li>
                    </p>
-                   <p>
-                     📌2.gemini-pro-vision 和 gpt-4-vision-preview 两款视觉模型上线，支持图片识别、基于图片内容进行提问等功能。
-                   </p>
-                    <p>
-                      系统内置阶段提供 💰免费的内置高速模型-赶快来免费使用吧！！！
-                    </p>
-                   <p>
-                     文字模型支持： Open AI全部模型、文言一心、讯飞星火大模型、清华智谱模型、阿里通义千问、谷歌大模型等...
-                   </p>
-                   <p>
-                     绘图模型支持：Futura AI绘图🎨等，其它模型持续更新中...
-                   </p>
-                   <p>
-                     支持联网搜索，建议先查看模型价格及常见问题文档
-                   </p>
+                   {/*<p>*/}
+                   {/*  支持联网搜索，建议先查看模型价格及常见问题文档*/}
+                   {/*</p>*/}
                    {/*<img src={xlPng.src} width={'100%'}/>*/}
                    {/*<img src={xhPng.src} width={'100%'}/>*/}
                    {/*<img src={zyPng.src} width={'100%'}/>*/}
@@ -617,6 +1092,8 @@ function Screen() {
           )}
 
         </div>
+
+
         {currentPage === "shuoming" && (
             <div style={{width:'80%',height:'90%',padding:'20px',margin:'auto',overflow: 'auto' }}>
               <Markdown
@@ -700,23 +1177,134 @@ function Screen() {
             <div className={styles.userInfoContainer} style={{ textAlign: "center" }}>
               <div className={styles["userBaseInfo"]} >
                 <div className={styles.userBaseInfo_view}>
-                  <img className={styles.userBaseInfo_userAvatar} src={userInfo?.avatarUrl || 'default-avatar.jpg'}/>
-                  <span className={styles.userBaseInfo_userName}>{userInfo?.userName || 'Guest'}</span>
-                  <div style={{'marginTop':'20px'}}>
-                    <button className={styles.logOut} onClick={async () => {
-                        if (await showConfirm("确认退出吗？")){
-                          accessStore.update(
-                              (access) => (access.accessCode = ''),
-                          );
-                          // 跳转到首页*/}
-                          window.location.href = '/';
-                        }
-                      }}>退出登录</button>
+                  {/*<Avatar*/}
+                  {/*    size={{ xs: 24, sm: 32, md: 40, lg: 64, xl: 64, xxl: 64 }}*/}
+                  {/*    className={styles.userAvatar} src={<img src={userInfo?.avatarUrl || ''} alt="个人中心" />} />*/}
+
+                  <div style={{'width':'100%'}}>
+                    <h2>用户基本信息</h2>
+                    <div style={{
+                      // 'marginLeft': '20px',
+                      'display': 'flex',
+                      'flexFlow': 'column',
+                      'marginTop': '50px',
+                      'alignItems': 'center'}}>
+                      <ImgCrop
+                          modalTitle={'裁剪头像'}
+                            modalOk={'确定'}
+                            modalCancel={'取消'}
+                          rotationSlider>
+                        <Upload
+                            name="file"
+                            listType="picture-circle"
+                            className="avatar-uploader"
+                            showUploadList={false}
+                            headers={{ Token: accessStore.accessCode }}
+                            action={uploadFileUrl}
+                            beforeUpload={beforeUpload}
+                            onChange={handleChange}
+                        >
+                          <Avatar
+                              size={{ xs: 24, sm: 32, md: 40, lg: 64, xl: 64, xxl: 90 }}
+                              className={styles.userAvatar} src={<img src={userInfo?.avatarUrl || ''} alt="个人中心" />} />
+                        </Upload>
+                      </ImgCrop>
+
+                      {userInfo?.email && (
+                          <span
+                              style={{ backgroundColor: '#FFFFFF','marginTop':'10px','width':'50%' }}
+                          >邮箱📮: {userInfo.email}</span>
+                      )}
+                      {!userInfo?.email && (
+                          <span
+                              style={{ backgroundColor: '#FFFFFF','marginTop':'10px','width':'50%' }}
+                          >邮箱📮: <a href={'#'} onClick={()=> showBindEmailConf()}>去绑定</a></span>
+                      )}
+
+                      {userInfo?.openId && (
+                          <div style={{'marginTop':'10px'}}>
+                            微信: 已绑定
+                          </div>
+                      )}
+                      {!userInfo?.openId && (
+                          <div style={{'marginTop':'10px'}}>
+                            微信: <a href={'#'} onClick={()=> showBindWxConf()}>去绑定</a>
+                          </div>
+                      )}
+
+                      <input
+                          type="text"
+                          value={userName}
+                          maxLength={10}
+                          minLength={1}
+                          onChange={handleUserNameChange}
+                          placeholder="请输入用户名"
+                          style={{ backgroundColor: '#FFFFFF','marginTop':'10px','width':'50%' }}
+                      />
+                      <Button
+                          disabled={isUserInfoLoading}
+                          danger
+                          className={styles.userInfoSubButton}
+                          type="default"
+                          onClick={handleSubmit}
+                      >
+                        {isUserInfoLoading ? '提交中...' : '提交'}
+                      </Button>
+
+                      {showBindWx && (
+                          <>
+                          <Divider />
+                          <div style={{textAlign:'center',marginTop:'10px'}}>
+                            <h3>微信绑定</h3>
+                            <img src={Qrcode.src} style={{width:'180px'}}/>
+                            <p style={{marginTop:'-10px'}}><img src={Wechat.src} style={{width:'20px'}}/>关注公众号后 发送 "<span style={{color:'red'}}>绑定</span>" 获取验证码</p>
+                            <input type="text" placeholder="请输入验证码" style={{marginBottom:'8px'}} value={wxBindVCode} maxLength={4}
+                                   onChange={(e) => setWxBindVCode(e.currentTarget.value)}
+                            />
+                            <Button
+                                style={{marginLeft:'4px'}}
+                                type="default"
+                                onClick={()=> wxBind()}>绑定</Button>
+                          </div>
+                          </>
+                      )}
+
+                      {showBindEmail && (
+                          <>
+                          <Divider />
+                          <div style={{textAlign:'center',display:'flex',flexDirection:'column',width:'100%',alignItems: 'center',marginTop:'10px'}}>
+                            <h3>邮箱绑定</h3>
+                            <input type="text" placeholder="请输入邮箱" style={{marginBottom:'8px',width:'80%'}} value={bindEmail} maxLength={30}
+                                   onChange={(e) => setBindEmail(e.currentTarget.value)}
+                            />
+                            <div style={{width:'100%'}}>
+                              <input type="text" placeholder="请输入验证码" style={{marginBottom:'8px',width:'30%'}} value={emailBindVCode} maxLength={4}
+                                     onChange={(e) => setEmailBindVCode(e.currentTarget.value)}
+                              />
+                              <CountdownButton buttonText='发送验证码' onClick={emailBindSendCode}></CountdownButton>
+                            </div>
+
+                            <Button
+                                style={{marginLeft:'4px',width:'50%'}}
+                                type="default"
+                                onClick={()=> emailBind()}>绑定</Button>
+                          </div>
+                          </>
+                      )}
+
+
+                    </div>
+
                   </div>
+
+
+                {/*</>*/}
+
+                  {/*<img className={styles.userBaseInfo_userAvatar} src={userInfo?.avatarUrl || 'default-avatar.jpg'}/>*/}
                 </div>
 
                 <div style={{'position': 'absolute', 'bottom': '0%', 'left': '104px', 'width': '100%','color': 'var(--black)'
-                ,'backgroundColor': 'var(--white)','zIndex': 1,'height':'200px','paddingLeft':'30px'}}>
+                ,'backgroundColor': 'var(--white)','zIndex': 1,'height':'130px','paddingLeft':'30px'}}>
                   {/* 展示积分信息 */}
                   <div style={{'textAlign': 'left'}}>
                     <h3 style={{'marginBottom': '10px'}}>积分信息</h3>
@@ -729,49 +1317,26 @@ function Screen() {
                       {/*<span>限免消耗💰：{pointsBalanceUseFreeTotal}</span>*/}
 
                     </div>
-                    <MaskIcon width={20} /><a href={'https://www.mmingsheng.com/links/1524B794'}> 订阅积分</a>
+                    <SubscribePointIcon width={20} />
+                    <a href={'https://pay-chat.mafutura.top/'} target="_blank"> 订阅积分</a>
                   </div>
                 </div>
               </div>
 
-              <div className={styles.sider_border}></div>
+              <Divider type="vertical"  style={{height:'100%'}}/>
 
               <div className={styles["userRecord"]} id={SlotID.AppBody}>
                 <div className={styles.userBaseInfoEdit}>
                   <div style={{'width':'50%'}}>
-                    <h2>用户基本信息</h2>
-                    <div style={{
-                      'marginLeft': '20px',
-                      'display': 'flex',
-                      'flexFlow': 'column',
-                      'marginTop': '50px',
-                      'alignItems': 'center'}}>
-
-                      <Image
-                          src={userInfo?.avatarUrl || ''}
-                          width={50}
-                          height={50}
-                          alt={'用户头像'}
-                      />
-
-                      <input
-                          type="text"
-                          value={userName}
-                          maxLength={10}
-                          minLength={1}
-                          onChange={handleUserNameChange}
-                          placeholder="请输入用户名"
-                          style={{ backgroundColor: '#FFFFFF','marginTop':'10px','width':'50%' }}
-                      />
-                      <IconButton
-                          disabled={isUserInfoLoading}
-                          className={styles.userInfoSubButton}
-                          text={isUserInfoLoading ? '提交中...' : '提交'}
-                          type="primary"
-                          onClick={handleSubmit}
-                      />
-                    </div>
-
+                    <h2>签到</h2>
+                    <IconButton
+                        disabled={signToday}
+                        className={styles.signCodeSubButton}
+                        text={signToday ? '今日已签到...' : '签到'}
+                        type="primary"
+                        onClick={signClick}
+                    />
+                    <p style={{color:'cadetblue'}}>每日签到可获得 1000 积分</p>
                   </div>
                   <div style={{'width':'50%'}}>
                     <h2>积分兑换</h2>
@@ -802,16 +1367,25 @@ function Screen() {
         )}
 
 
-        {!userInfo && currentPage === "chat" && !isActiveStatuView && (
-          <AuthPage />
-      )}
+      {/*  {!userInfo && currentPage === "chat" && !isActiveStatuView && (*/}
+      {/*    <AuthPage />*/}
+      {/*)}*/}
+        {currentPage === "login" && (
+            <AuthPage />
+        )}
         {currentPage === "draw" && (
             <Drawing />
+        )}
+        {currentPage === "music" && (
+            <Music />
+        )}
+        {currentPage === "writing" && (
+            <Writing />
         )}
         <Routes>
           <Route path={Path.Active} element={<Active />} />
         </Routes>
-      {currentPage === "chat" && userInfo && (
+      {currentPage === "chat" && (
           <>
             {/*<div style={{    'color': '#938a8a',*/}
             {/*  'paddingTop': '10px',*/}
@@ -839,10 +1413,39 @@ function Screen() {
                 <Route path={Path.Active} element={<Active />} />
               </Routes>
             </div>
+            {/*右边的菜单*/}
+            {/*<div className={styles.menuMinContainer}>*/}
+            {/*  <a*/}
+            {/*      href="#"*/}
+            {/*      className={`${styles.menuMin} ${currentPage === "chat" ? styles.active : ""}`}*/}
+            {/*      onClick={() => handleMenuClick("chat")}*/}
+            {/*  >*/}
+            {/*    <LiaotianIcon className={styles.menuLogoIcon}/>*/}
+            {/*    <div>聊天</div>*/}
+            {/*  </a>*/}
+            {/*  <a*/}
+            {/*      href="#"*/}
+            {/*      className={`${styles.menuMin} ${currentPage === "draw" ? styles.active : ""}`}*/}
+            {/*      onClick={() => handleMenuClick("draw")}*/}
+            {/*  >*/}
+            {/*    <DrawIcon className={styles.menuLogoIcon}/>*/}
+            {/*    <div>写作</div>*/}
+            {/*  </a>*/}
+            {/*  <a*/}
+            {/*      onClick={() => handleMenuClick("model")}*/}
+            {/*      className={`${styles.menuMin} ${currentPage === "model" ? styles.active : ""}`}*/}
+            {/*  >*/}
+            {/*    <ModelPriceIcon className={styles.menuLogoIcon}/>*/}
+            {/*    <div>翻译</div>*/}
+            {/*  </a>*/}
+            {/*</div>*/}
           </>
 
       )}
       </div>
+
+
+
       </div>
 
   );
@@ -885,4 +1488,57 @@ export function Home() {
   );
 }
 
+const CountdownButton = ({ buttonText, onClick }: { buttonText: string, onClick: () => Promise<Response>}) => {
+  const [countdown, setCountdown] = useState(0);
+  const [isDisabled, setIsDisabled] = useState(false);
 
+  const startCountdown = () => {
+    setCountdown(60);
+    setIsDisabled(true);
+  };
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    } else {
+      setIsDisabled(false);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleButtonClick = () => {
+    if (!isDisabled) {
+      // 调用外部传入的点击事件处理函数
+      onClick().then(response => response.json())
+          .then(data => {
+            // 处理响应数据
+            if(!data.success){
+              message.error(data.data)
+              return false;
+            }
+            message.success(data.data);
+            startCountdown()
+            return true;
+          })
+          .catch((error) => {
+            // 处理错误
+            console.error(error);
+            message.error(error)
+          });
+    }
+  };
+
+  return (
+      <Button
+          style={{ marginLeft: '4px',minWidth:'102px' }}
+          type="default"
+          onClick={handleButtonClick}
+          disabled={isDisabled}
+      >
+        {isDisabled ? `${countdown}s` : buttonText}
+      </Button>
+  );
+};
+
+export default CountdownButton;

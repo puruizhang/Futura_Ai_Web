@@ -15,7 +15,7 @@ export const EN_MASKS: BuiltinMask[] = [
             },
         ],
         modelConfig: {
-            model: "gpt-4-(极速、联网支持)-(1次/1000积分🔥)",
+            model: "GPT-3.5-TURBO",
             temperature: 0.3,
             max_tokens: 2000,
             presence_penalty: 0,
@@ -65,7 +65,7 @@ export const EN_MASKS: BuiltinMask[] = [
             },
         ],
         modelConfig: {
-            model: "gpt-4-(极速、联网支持)-(1次/1000积分🔥)",
+            model: "GPT-3.5-TURBO",
             temperature: 0.5,
             max_tokens: 2000,
             presence_penalty: 0,
@@ -92,7 +92,7 @@ export const EN_MASKS: BuiltinMask[] = [
             },
         ],
         modelConfig: {
-            model: "gpt-3.5-turbo-(极速、联网支持)-(1次/20积分🔥)",
+            model: "GPT-3.5-TURBO",
             temperature: 0.5,
             max_tokens: 2000,
             presence_penalty: 0,
@@ -126,7 +126,7 @@ export const EN_MASKS: BuiltinMask[] = [
             },
         ],
         modelConfig: {
-            model: "gpt-4-(极速、联网支持)-(1次/1000积分🔥)",
+            model: "GPT-3.5-TURBO",
             temperature: 0.5,
             max_tokens: 2000,
             presence_penalty: 0,

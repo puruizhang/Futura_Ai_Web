@@ -189,7 +189,7 @@
 }
 
 .chat-item-selected {
-  border-color: var(--primary);
+  border-color: #18a058;
 }
 
 .chat-item-title {
@@ -363,6 +363,23 @@
   margin-bottom: 10px;
 }
 
+.menuMinContainer {
+  align-items: center;
+  //color: #1a1b26;
+  width: 60px;
+  height: 100%;
+  --tw-bg-opacity: 1;
+  background-color: var(--white);
+  color: var(--black);
+  border: var(--border-in-light);
+  display: flex;
+  text-align: center;
+  flex-direction: column;
+  justify-content: left;
+  margin-bottom: 10px;
+  margin-top: 76px;
+}
+
 .menuLogo {
   padding: 10px 15px;
   margin: 10px 7px;
@@ -370,7 +387,7 @@
   border-radius: 5px;
   color: #333;
   cursor: pointer;
-  height: 30px;
+  height: 5px;
 }
 
 .menuA {
@@ -386,7 +403,24 @@
   font-size: 14px;
   cursor: pointer;
   //height: 25px;
-  width: 32%;
+  min-width: 52px;
+  text-decoration: none;
+}
+
+.menuMin {
+  border-radius: 0.75rem;
+  padding: 2px 8px;
+  margin: 10px 7px;
+  border: none;
+  //background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+  //color: #333;
+  background-color: var(--white);
+  color: var(--black);
+  border: var(--border-in-light);
+  font-size: 12px;
+  cursor: pointer;
+  //height: 25px;
+  min-width: 32px;
   text-decoration: none;
 }
 
@@ -406,8 +440,7 @@
 
 .userLogo {
   position: absolute;
-  bottom: 40px;
-  left: 23px;
+  bottom: 66px;
   flex-direction:column;
   align-items: center;
   //padding: 10px 0px;
@@ -498,6 +531,19 @@
   height: 50px;
 }
 
+.userAvatar_notlogin {
+  font-size: 16px;
+  padding: 15px;
+  border-radius: 5px;
+  width: 50px;
+  color: var(--black);
+  height: 50px;
+  //text-decoration: none;
+  background-color: var(--white);
+  //border: 1px solid #ccc;
+  //box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+}
+
 
 .logOutDiv{
   border-radius: 5px;
@@ -526,12 +572,14 @@
 }
 
 .modal{
-  z-index: 9;
-  border-color: #6e7681;
+  z-index: 999;
+  border-color: var(--border-in-light);
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  //box-shadow: 5px 5px 10px rgba(49, 48, 48, 0.2);
+  box-shadow: #7fe69d 0px 24px 40px, 0 10.8529px 24.1177px rgba(0,0,0,.0456112), 0 4.50776px 10.0172px rgba(0,0,0,.035), 0 1.63037px 3.62304px rgba(0,0,0,.0243888)
 }
 .modal-input{
   width: 96%;
@@ -551,6 +599,7 @@
 }
 
 .userInfoContainer {
+  font-size: 13px;
   display: flex;
   flex-direction: row;
   //color: #000000;
@@ -593,7 +642,7 @@
 .userBaseInfoEdit{
   display: flex;
   flex-direction: row;
-  height: 300px;
+  height: 240px;
 }
 .userRecord{
   z-index: 2;
@@ -619,7 +668,8 @@
 }
 
 .recordTable{
-  height: 200px;
+  overflow: auto;
+  height: 90%;
   margin-left: 10px;
   margin-right: 2%;
 }
@@ -639,9 +689,16 @@
   color: #333;
 }
 
+.userInfoLogout{
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 80% !important;
+}
+
 .userInfoSubButton{
-  margin-top: 20px;
-  width: 50%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 50% !important;
 }
 
 .tableSearchButton{
@@ -665,6 +722,12 @@
 
 .exchangeCodeSubButton{
   margin-top: 22px;
+  width: 54%;
+  margin-left: 23%;
+}
+
+.signCodeSubButton{
+  margin-top: 78px;
   width: 54%;
   margin-left: 23%;
 }
@@ -789,4 +852,58 @@
 .menuLogoIcon{
   font-size: 1.575rem;
   line-height: 0.25rem;
+}
+
+.menuRouterText{
+  display: flex;
+  height: 180px;
+  //width: 330px;
+  text-align: left;
+  padding: 12px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: #929292 0px 24px 40px, 0 10.8529px 24.1177px rgba(0,0,0,.0456112), 0 4.50776px 10.0172px rgba(0,0,0,.035), 0 1.63037px 3.62304px rgba(0,0,0,.0243888);
+  box-sizing: border-box;
+  position: absolute;
+  top: 7%;
+  left: 3%;
+  z-index: 9;
+  margin-left: 10px;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+  color: var(--black);
+}
+
+
+.menuRouterul{
+  width: 250px;
+  color: #1b262a;
+  box-sizing: content-box;
+  //max-width: 656px;
+  margin-block: 0;
+  margin-inline: 0;
+  padding-block: 0;
+  padding-inline: 0;
+  list-style: none;
+}
+.menuRouterli{
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  width: 328px;
+  //height: 72px;
+  padding-inline: 16px;
+  padding-block: 16px;
+  vertical-align: top;
+  list-style-type: none;
+  transition: transform 0.2s cubic-bezier(0.333, 0, 0, 1);
+  border-radius: 6px;
+}
+
+.menu_menuRouterA{
+  display: flex;
+  height: 100%;
+  font-size: 12px;
+  text-decoration: none;
 }

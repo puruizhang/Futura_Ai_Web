@@ -7,8 +7,8 @@ const cn = {
   WIP: "该功能仍在开发中……",
   Error: {
     Unauthorized: isApp
-      ? "检测到无效 API Key，请前往[设置](/#/settings)页检查 API Key 是否配置正确。"
-      : "未检测到授权，请购买服务后重试",
+      ? "监测到未登录，请登录后重试！"
+      : "监测到未登录，请登录后重试！",
   },
   Auth: {
     Title: "登录",

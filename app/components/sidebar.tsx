@@ -1,15 +1,15 @@
 import React, {useEffect, useRef, useMemo, useState} from "react";
 
 import styles from "./home.module.scss";
-
+import { Button } from 'antd';
 import { IconButton } from "./button";
-import SettingsIcon from "../icons/settings.svg";
+import SettingsIcon from "../icons/设置.svg";
 import GithubIcon from "../icons/github.svg";
 import ChatGptIcon from "../icons/chatgpt.svg";
-import AddIcon from "../icons/add.svg";
+import AddIcon from "../icons/新增聊天.svg";
 import CloseIcon from "../icons/close.svg";
 import DeleteIcon from "../icons/delete.svg";
-import MaskIcon from "../icons/mask.svg";
+import SubscribeIcon from "../icons/订阅积分.svg";
 import PluginIcon from "../icons/plugin.svg";
 import DragIcon from "../icons/drag.svg";
 import Locale from "../locales";
@@ -29,10 +29,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { isIOS, useMobileScreen } from "../utils";
 import dynamic from "next/dynamic";
 import { showConfirm, showToast } from "./ui-lib";
-import BrainIcon from "../icons/brain.svg";
+import BrainIcon from "../icons/积分.svg";
 import ResetIcon from "../icons/reload.svg";
 import API_BASE_URL from "../../config";
-import NoticeIcon from "../icons/notice.svg";
+import NoticeIcon from "../icons/公告.svg";
 
 const ChatList = dynamic(async () => (await import("./chat-list")).ChatList, {
   loading: () => null,
@@ -267,7 +267,7 @@ export function SideBar(props: { className?: string ,handleShowDismiss?:() => vo
             <Link to={Path.Settings}>
               <IconButton
                   text='设置'
-                  icon={<SettingsIcon />} shadow />
+                  icon={<SettingsIcon />}  />
             </Link>
           </div>
 
@@ -332,7 +332,8 @@ export function SideBar(props: { className?: string ,handleShowDismiss?:() => vo
             {/*<span>限免消耗💰：{pointsBalanceUseFreeTotal}</span>*/}
 
           </div>
-          <MaskIcon width={20} /><a href={'https://www.mmingsheng.com/links/1524B794'} target={"_blank"}> 订阅积分</a>
+          <SubscribeIcon width={20} />
+          <a href={'https://pay-chat.mafutura.top'} target="_blank"> 订阅积分</a>
         </div>
       </div>
     </div>

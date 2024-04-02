@@ -4,6 +4,9 @@ import "./styles/markdown.scss";
 import "./styles/highlight.scss";
 import { getClientConfig } from "./config/client";
 import { type Metadata } from "next";
+import { AntdRegistry } from '@ant-design/nextjs-registry';
+import {CommentOutlined, CustomerServiceOutlined, QuestionCircleOutlined} from '@ant-design/icons';
+import { FloatButton } from 'antd';
 
 export const metadata: Metadata = {
   title: "Futura AI",
@@ -35,7 +38,10 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest"></link>
         <script src="/serviceWorkerRegister.js" defer></script>
       </head>
-      <body>{children}</body>
+      <body>
+      {/*<FloatButton icon={<QuestionCircleOutlined />} type="default" style={{ right: 24,bottom:150 }} />*/}
+
+      <AntdRegistry>{children}</AntdRegistry></body>
     </html>
   );
 }

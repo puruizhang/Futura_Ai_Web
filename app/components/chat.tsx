@@ -5,38 +5,54 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
-  Fragment,
+  Fragment, RefObject,
 } from "react";
-
+import FGpt from "../icons/fgpt.png";
+import Case17 from "../icons/case17.png";
 import SendWhiteIcon from "../icons/send-white.svg";
 import BrainIcon from "../icons/brain.svg";
-import RenameIcon from "../icons/rename.svg";
-import ExportIcon from "../icons/share.svg";
+import RenameIcon from "../icons/编辑消息.svg";
+import ExportIcon from "../icons/导出.svg";
 import ReturnIcon from "../icons/return.svg";
-import CopyIcon from "../icons/copy.svg";
-import ChatIcon from "../icons/chat.svg";
+import CopyIcon from "../icons/复制.svg";
+import ContextIcon from "../icons/开启上下文.svg";
+import NetIcon from "../icons/开启联网.svg";
 import LoadingIcon from "../icons/three-dots.svg";
-import PromptIcon from "../icons/prompt.svg";
-import MaskIcon from "../icons/mask.svg";
+import PromptIcon from "../icons/快捷指令.svg";
+import MaskIcon from "../icons/所有面具.svg";
 import MaxIcon from "../icons/max.svg";
 import MinIcon from "../icons/min.svg";
-import ResetIcon from "../icons/reload.svg";
-import BreakIcon from "../icons/break.svg";
-import SettingsIcon from "../icons/chat-settings.svg";
-import DeleteIcon from "../icons/clear.svg";
-import PinIcon from "../icons/pin.svg";
-import EditIcon from "../icons/rename.svg";
+import ResetIcon from "../icons/刷新.svg";
+import BreakIcon from "../icons/清除聊天.svg";
+import SettingsIcon from "../icons/对话设置.svg";
+import DeleteIcon from "../icons/删除.svg";
+import PinIcon from "../icons/固定.svg";
+import EditIcon from "../icons/编辑消息.svg";
 import ConfirmIcon from "../icons/confirm.svg";
 import CancelIcon from "../icons/cancel.svg";
 import UploadIcon from "../icons/upload.svg";
-import LightIcon from "../icons/light.svg";
-import DarkIcon from "../icons/dark.svg";
-import AutoIcon from "../icons/auto.svg";
-import BottomIcon from "../icons/bottom.svg";
-import StopIcon from "../icons/pause.svg";
-import RobotIcon from "../icons/robot.svg";
+import LightIcon from "../icons/亮色模式.svg";
+import DarkIcon from "../icons/深色模式.svg";
+import AutoIcon from "../icons/自动主题.svg";
+import BottomIcon from "../icons/滚到最新.svg";
+import StopIcon from "../icons/停止响应.svg";
+import RobotIcon from "../icons/gpt.svg";
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
+import {
+  Button,
+  Card, Divider, GetProp,
+  message, Typography,
+  Modal as AntModal,
+  Tabs,
+  List as AntList,
+  TabsProps,
+  Tooltip,
+  Tour,
+  TourProps,
+  Upload,
+  UploadFile, UploadProps, FloatButton, Avatar as AntAvatar
+} from 'antd';
 
 import {
   ChatMessage,
@@ -85,7 +101,6 @@ import {
   REQUEST_TIMEOUT_MS,
   UNFINISHED_INPUT,
 } from "../constant";
-import { Avatar } from "./emoji";
 import { ContextPrompts, MaskAvatar, MaskConfig } from "./mask";
 import { useMaskStore } from "../store/mask";
 import { ChatCommandPrefix, useChatCommand, useCommand } from "../command";
@@ -94,6 +109,11 @@ import { ExportMessageModal } from "./exporter";
 import { getClientConfig } from "../config/client";
 import { useAllModels } from "../utils/hooks";
 import API_BASE_URL from "../../config";
+import Meta from "antd/es/card/Meta";
+import {LegacyRef} from "react/index";
+import {QuestionCircleOutlined, UploadOutlined} from "@ant-design/icons";
+import {FileType} from "next/dist/lib/file-exists";
+import {Avatar} from "./emoji";
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
@@ -378,16 +398,16 @@ function ChatAction(props: {
 
         onClick={() => {
         props.onClick();
-        setTimeout(updateWidth, 1);
+        // setTimeout(updateWidth, 1);
       }}
-      onMouseEnter={updateWidth}
-      onTouchStart={updateWidth}
-      style={
-        {
-          "--icon-width": `${width.icon}px`,
-          "--full-width": `${width.full}px`,
-        } as React.CSSProperties
-      }
+      // onMouseEnter={updateWidth}
+      // onTouchStart={updateWidth}
+      // style={
+      //   {
+      //     "--icon-width": `${width.icon}px`,
+      //     "--full-width": `${width.full}px`,
+      //   } as React.CSSProperties
+      // }
     >
       <div ref={iconRef} className={styles["icon"]}>
         {props.icon}
@@ -449,6 +469,81 @@ export function ChatActions(props: {
     config.update((config) => (config.theme = nextTheme));
   }
 
+  // 以下为漫游引导
+  const ref1 = useRef(null);
+  const ref2 = useRef(null);
+  const ref3 = useRef(null);
+
+  const [open, setOpen] = useState<boolean>(true);
+
+  const steps: TourProps['steps'] = [
+    {
+      title: '分析图片-支持多轮会话',
+      description: '上传你的图片',
+      cover: (
+          <img
+              alt="分析图片"
+              src='https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/case1.png'
+          />
+      ),
+      target: () => ref1.current,
+    },
+    {
+      title: '图片-分析的结果',
+      description: '支持多轮提问，记得开启上下文.',
+      cover: (
+          <img
+              alt="分析图片"
+              src='https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/case2.png'
+          />
+      ),
+      target: () => ref2.current,
+    },
+    {
+      title: '切换模型',
+      description: '选择更合适的模型，解决问题事半功倍.',
+      cover: (
+          <>
+            <img
+                alt="切换模型"
+                src='https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/case3.png'
+            />
+            <img
+                alt="插件市场"
+                src='https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/case4.png'
+            />
+          </>
+      ),
+      target: () => ref3.current,
+    },
+    {
+      title: '如何使用插件',
+      description: '如何使用插件.',
+      cover: (
+          <>
+            <img
+                alt="如何使用插件"
+                src='https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/case5.png'
+            />
+          </>
+      ),
+      target: () => ref3.current,
+    },
+    {
+      title: '每日打卡获取积分',
+      description: '每日打卡获取积分.',
+      cover: (
+          <>
+            <img
+                alt="如何使用插件"
+                src='https://doraemon-website.oss-cn-shanghai.aliyuncs.com/futura_doc/case6.png'
+            />
+          </>
+      ),
+      target: () => ref3.current,
+    },
+  ];
+
   // stop all responses
   const couldStop = ChatControllerPool.hasPending();
   const stopAll = () => ChatControllerPool.stopAll();
@@ -456,6 +551,13 @@ export function ChatActions(props: {
   const [contextBackgroundColor, setContextBackgroundColor] = useState('contextChangedColor');
   // 开启联网按钮
   const [netColor, setNetColor] = useState('netChangedColor');
+
+  const [modelTab, setModelTab] = useState('model');
+
+  const handleModelTabChange = (value:string) => {
+    console.log(value)
+    setModelTab(value);
+  }
 
   const handleNetChange = () => {
     if(netColor === 'netInitialColor'){
@@ -483,26 +585,98 @@ export function ChatActions(props: {
     chatStore.updateCurrentSessionIsContext(contextBackgroundColor === 'initialColor');
   };
 
+
   // switch model
-  const currentModel = chatStore.currentSession().mask.modelConfig.model;
+  const currentModel = chatStore.currentSession().mask.modelConfig.model.toLowerCase() === "gpt-3.5-turbo-(极速、联网支持)".toLowerCase() ? 'GPT-3.5-TURBO' : chatStore.currentSession().mask.modelConfig.model;
+  chatStore.currentSession().mask.modelConfig.model = currentModel;
   const allModels = useAllModels();
   const models = useMemo(
       () => allModels.filter((m) => m.available).slice().sort((a, b) => a.index - b.index),
       [allModels],
   );
-  const [showModelSelector, setShowModelSelector] = useState(false);
+  const [showModel, setShowModel] = useState(false);
+
+  const [modeList, setModeList] = useState([]);
+  const [gptsList, setGptsList] = useState([]);
+
+  const selectModel = (displayName:string,model:string) =>{
+    console.log('当前选择的model-'+displayName)
+    chatStore.updateCurrentSession((session) => {
+      session.mask.modelConfig.model = displayName as ModelType;
+      session.mask.syncGlobalConfig = false;
+    });
+    setShowModel(false);
+  }
+
+  const onChange = (key: string) => {
+    if(key == '1'){
+      handleModelTabChange('model');
+    }else{
+      handleModelTabChange('gpts');
+    }
+  };
+
+  const items: TabsProps['items'] = [
+    {
+      key: '1',
+      label: '云模型',
+      children: '',
+    },
+    {
+      key: '2',
+      label: '插件商店',
+      children: '',
+    },
+  ];
+
+  // 获取模型列表
+  const modelList = () => {
+    fetch(`${API_BASE_URL}/v1/api/model/list`,{
+      method: 'GET',
+      headers: {
+      }
+    })
+        .then(response => response.json()
+        )
+        .then(data => {
+          if(data.code==200){
+            setModeList(data.data.modeList);
+            setGptsList(data.data.gptsList);
+          }else{
+            message.error(data.data)
+          }
+        }
+        )
+        .catch((error) => {
+          console.error('Error:', error);
+        }
+        );
+  }
+
+  const handleModelChange = () => {
+    setShowModel(true);
+    modelList();
+    setModelTab('model');
+
+  }
+
+  const tourFinish = () =>{
+    // 记录到本地
+    localStorage.setItem('tourFinish', 'true');
+  }
+
 
   useEffect(() => {
     // if current model is not available
     // switch to first available model
-    const isUnavaliableModel = !models.some((m) => m.name === currentModel);
-    if (isUnavaliableModel && models.length > 0) {
-      const nextModel = models[0].name as ModelType;
-      chatStore.updateCurrentSession(
-        (session) => (session.mask.modelConfig.model = nextModel),
-      );
-      showToast(nextModel);
-    }
+    // const isUnavaliableModel = !models.some((m) => m.name === currentModel);
+    // if (isUnavaliableModel && models.length > 0) {
+    //   const nextModel = models[0].name as ModelType;
+    //   chatStore.updateCurrentSession(
+    //     (session) => (session.mask.modelConfig.model = nextModel),
+    //   );
+    //   showToast(nextModel);
+    // }
 
     // 读取当前上下文是否启用的状态 setContextBackgroundColor
     if(chatStore.currentSession().isContext){
@@ -517,11 +691,122 @@ export function ChatActions(props: {
     }else{
       setNetColor('netInitialColor');
     }
+    // 获取模型列表
+    modelList();
+
+    if(localStorage.getItem('tourFinish') == 'true'){
+      setOpen(false);
+    }
 
   }, [chatStore, currentModel, models]);
 
   return (
+    <>
+      <Tour open={open} onClose={() => setOpen(false)} steps={steps}
+            onFinish={()=>tourFinish()}/>
+
     <div className={styles["chat-input-actions"]}>
+      {showModel && (
+          <AntModal
+              title="模型选择"
+              centered
+              okText={'确定'}
+              cancelText={'取消'}
+              open={showModel}
+              // onOk={() => setShowModel(false)}
+              onCancel={() => setShowModel(false)}
+              width={1000}
+          >
+            <Tabs defaultActiveKey="1" items={items} onChange={onChange} />
+            { modelTab === "model" && (
+
+                <div
+                    ref={ref2}
+                    style={{
+                  flexWrap: 'wrap',
+                  width:'100%',
+                  // backgroundColor: '#f0f0f3',
+                  display: 'flex',
+                  flexDirection: 'row',
+                }}>
+                  {modeList && modeList.map((item: any, index: number) => (
+                      <Card
+                          onClick={() => selectModel(item.displayName,item.name)}
+                          hoverable={true}
+                          style={{ width: 220,cursor: 'pointer',margin:'5px'}}
+                      >
+                        <div style={{display:'flex',flexDirection:'column'}}>
+                          <img src={item.logo} width={'80px'}/>
+                          <div style={{marginLeft:'10px'}}>
+                            <Tooltip title={item.description} color={'orange'} key={'orange'}>
+                              <h4>{item.displayName}</h4>
+                              <span>{item.description && item.description.substring(0,40)+'...'}</span>
+                            </Tooltip>
+                          </div>
+                        </div>
+                      </Card>
+                  ))
+                  }
+                </div>
+            )
+
+            }
+
+            { modelTab === "gpts" && (
+                <div style={{
+                  flexWrap: 'wrap',
+                  width:'100%',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'row',
+                }}>
+                  {gptsList && gptsList.map((item: any, index: number) => (
+                      <Card
+                          onClick={() => selectModel(item.displayName,item.name)}
+                          hoverable={true}
+                          style={{ width: 220,cursor: 'pointer',margin:'5px'}}
+                      >
+                        <div style={{display:'flex',flexDirection:'column'}}>
+
+                            <img src={item.logo} width={'115px'}/>
+                            <div style={{marginLeft:'10px'}}>
+                              <Tooltip title={item.description} color={'orange'} key={'orange'}>
+                              <h4>{item.displayName}</h4>
+                              <span>{item.description && item.description.substring(0,40)+'...'}</span>
+                              </Tooltip>
+                            </div>
+
+                        </div>
+
+                      </Card>
+                  ))
+                  }
+                </div>
+            )
+
+            }
+          </AntModal>
+
+          // <div className='modal-mask'>
+          //   <div style={{boxShadow: 'var(--card-shadow)',
+          //     backgroundColor: 'var(--white)',
+          //     borderRadius: '12px',
+          //     width: '80vw',
+          //     maxWidth: '900px',
+          //     minWidth: '300px',
+          //     maxHeight: '40vh',
+          //     padding: 'var(--modal-padding)',
+          //     overflow: 'auto',
+          //     // animation: ui-lib_slide-in__1VMXW ease 0.3s,
+          //     '--modal-padding': '20px'}}>
+          //
+          //   </div>
+          //
+          // </div>
+
+      )}
+
+
       {couldStop && (
         <ChatAction
           onClick={stopAll}
@@ -590,43 +875,26 @@ export function ChatActions(props: {
       />
 
       <ChatAction
-        onClick={() => setShowModelSelector(true)}
+        onClick={handleModelChange}
         text={currentModel}
         icon={<RobotIcon />}
       />
 
-      {showModelSelector && (
-        <Selector
-          defaultSelectedValue={currentModel}
-          items={models.map((m) => ({
-            title: m.displayName,
-            value: m.name,
-          }))}
-          onClose={() => setShowModelSelector(false)}
-          onSelection={(s) => {
-            if (s.length === 0) return;
-            chatStore.updateCurrentSession((session) => {
-              session.mask.modelConfig.model = s[0] as ModelType;
-              session.mask.syncGlobalConfig = false;
-            });
-            // showToast(s[0]);
-          }}
-        />
-      )}
       <ChatAction
           onClick={handleContextColorChange}
           textStyle={{contextBackgroundColor}}
           text={'开启上下文'}
-          icon={<ChatIcon />}
+          icon={<ContextIcon />}
       />
 
-      <ChatAction
-          onClick={handleNetChange}
-          textStyle={{netColor}}
-          text={'开启联网'}
-          icon={<ChatIcon />}
-      />
+      {/*<ChatAction*/}
+      {/*    onClick={handleNetChange}*/}
+      {/*    textStyle={{netColor}}*/}
+      {/*    text={'开启联网'}*/}
+      {/*    icon={<NetIcon />}*/}
+      {/*/>*/}
     </div>
+    </>
   );
 }
 
@@ -895,6 +1163,59 @@ function _Chat() {
     }
   };
 
+
+  const uploadFileUrl = API_BASE_URL + '/v1/api/upload';
+
+  type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
+
+  const handleChange: UploadProps['onChange'] = (info) => {
+    console.log(info)
+    if (info.file.status === 'uploading') {
+      return;
+    }
+    if (info.file.status === 'done') {
+      if(200 != info.file.response.code){
+        // 提示上传失败
+        message.error(info.file.response.message);
+      }else{
+        console.log(info.file.response.data)
+        setImgFileUrlList(info.file.response.data.map((url: string) => ({ imgUrl: url })));
+      }
+    }
+  };
+
+  const previewFile = (file:any) => {
+    console.log(file.response.data[0])
+    // window.open(file.response.data[0], '_blank');
+    const newTab = window.open();
+    if(newTab){
+      newTab.document.body.innerHTML = `<img src="${file.response.data[0]}" alt="展示图片" />`;
+    }
+
+
+  }
+
+
+  const [showUploadList, setShowUploadList] = useState(true);
+  const beforeUpload = (file: FileType) => {
+    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+    if (!isJpgOrPng) {
+      message.error('你只能上传 JPG/PNG 文件!');
+      return false;
+    }
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      message.error('图片大小需要小于 2MB!');
+      return false;
+    }
+    setShowUploadList(true);
+    return isJpgOrPng && isLt2M;
+  };
+
+  const handleUploadRemove = () => {
+    setImgFileUrlList([]);
+  }
+
   const deleteMessage = (msgId?: string) => {
     chatStore.updateCurrentSession(
       (session) =>
@@ -1085,6 +1406,9 @@ function _Chat() {
   const autoFocus = !isMobileScreen; // wont auto focus on mobile screen
   const showMaxIcon = !isMobileScreen && !clientConfig?.isApp;
 
+  const [uploadLoading, setUploadLoading] = useState(false);
+
+
   useCommand({
     fill: setUserInput,
     submit: (text) => {
@@ -1132,86 +1456,74 @@ function _Chat() {
     },
   });
   const [imgFileUrlList, setImgFileUrlList] = useState<Array<{ imgUrl: string }>>([]);
-  // 点击删除图片的处理函数
-  const handleRemoveImage = (imageUrl: string) => {
-    setImgFileUrlList(imgFileUrlList.filter((imgFile) => imgFile.imgUrl !== imageUrl));
-  };
-  // 放大图片
-  const handleZoomIn = (fileUrl:string) =>{
-    showModal({
-      title: '预览',
-      children: (
-          <div style={{'textAlign':'center'}}>
-            <img
-                src={fileUrl}
-                alt="preview"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                }}
-            ></img>
-          </div>
-      ),
-    });
-  }
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addData2FileUrlList = (data:string[]) => {
     // setImgFileUrlList([...imgFileUrlList, ...data]);
     // console.log(imgFileUrlList)
     setImgFileUrlList(prevList => [...prevList, ...data.map(url => ({ imgUrl: url }))]);
   };
-  const handleFileSubmit = async (event: any) => {
-    event.preventDefault();
-    console.log(event.target.files)
-    const fileList = event.target.files;
-    if (fileList.length === 0) {
-      showToast('请选择图片');
-      return;
-    }
-    if(imgFileUrlList.length + fileList.length > 5){
-      showToast('图片总量超过5张，请删减后再操作！');
-      return;
-    }
-    const formData = new FormData();
-    for (const index in fileList) {
-      formData.append('files', fileList[index]);
-    }
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/v1/api/upload`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          Token: `${accessStore.accessCode}`,
-        },
-      });
 
-      if (response.ok) {
-        const result = await response.text();
+  const data = [
+    '👨我该怎么跟孩子解释，什么是地球磁暴呢？',
+    '最近很迷惘，我该如何改变现状，有什么办法可以帮助我摆脱困境？',
+  ];
 
-        const fileUrlList = JSON.parse(result)
-        addData2FileUrlList(fileUrlList.data);
-
-      } else {
-        showToast('文件上传失败');
-      }
-    } catch (error) {
-      showToast('文件上传失败');
-    }
-    }
-
-  const handleButtonClick = () => {
-    // e.stopPropagation();
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
   // edit / insert message modal
   const [isEditingMessage, setIsEditingMessage] = useState(false);
 
+  const [isHovered, setIsHovered] = useState(false);
+  const [offsetX, setOffsetX] = useState(0);
+  const [userInfo, setUserInfo] = useState<{ userName: string, avatarUrl: string,email: string,openId: string } | null>(null);
+
+  const getUserInfo = () =>{
+    // 发送 GET 请求获取用户信息
+    if(accessStore.accessCode){
+      fetch(`${API_BASE_URL}/v1/api/getUserInfo`, {
+        method: 'GET',
+        headers: {
+          Token: `${accessStore.accessCode}`, // 使用访问令牌进行身份验证
+        },
+      })
+          .then(response => response.json())
+          .then(data => {
+            // 处理返回的用户信息数据
+            if(data.success){
+              setUserInfo(data.data);
+            }else{
+              showToast('请求频繁,请稍后再试！')
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            // 处理错误情况
+          });
+    }
+
+  }
+
+  const handleImg = (userInput:string) => {
+    doSubmit(userInput);
+    // 初始化图片list
+    setImgFileUrlList([]);
+    // 初始化上传文件组件
+    setShowUploadList(false);
+  }
+
+  // const handleMouseEnter = (e) => {
+  //   setIsHovered(true);
+  //   setOffsetX(e.nativeEvent.offsetX);
+  // };
+  //
+  // const handleMouseLeave = () => {
+  //   setIsHovered(false);
+  //   setOffsetX(0);
+  // };
   // remember unfinished input
   useEffect(() => {
     // try to load from local storage
+    getUserInfo();
     const key = UNFINISHED_INPUT(session.id);
     const mayBeUnfinishedInput = localStorage.getItem(key);
     if (mayBeUnfinishedInput && userInput.length === 0) {
@@ -1229,6 +1541,30 @@ function _Chat() {
 
   return (
     <div className={styles.chat} key={session.id}>
+      {/*<FloatButton icon={<QuestionCircleOutlined />} type="primary" style={{ right: 24 }} />*/}
+      { session.messages.length == 0 && (
+          <div style={{position:'absolute',top:'40%',
+            left: '50%',
+            flexDirection: 'column',
+            display: 'flex',
+            zIndex: 100,
+            transform: 'translate(-50%, -50%)'}}>
+            <img src={FGpt.src} style={{width:'100px',height:'100px',alignSelf:'center'}}></img>
+            <h3 style={{alignSelf:'center'}}>我今天能帮助你做些什么？</h3>
+            <Divider orientation="left"></Divider>
+            <AntList
+                bordered
+                dataSource={data}
+                renderItem={(item) => (
+                    <AntList.Item>
+                     <a href={'#'}
+                        style={{cursor:'pointer',color:'#1890ff'}}
+                        onClick={()=>{doSubmit(item)}}>{item}</a>
+                    </AntList.Item>
+                )}
+            />
+          </div>
+      )}
       <div className="window-header" data-tauri-drag-region>
         {isMobileScreen && (
           <div className="window-actions">
@@ -1266,7 +1602,7 @@ function _Chat() {
           )}
           <div className="window-action-button">
             <IconButton
-              icon={<ExportIcon />}
+              icon={<ExportIcon width='16px' height='16px'/>}
               bordered
               title={Locale.Chat.Actions.Export}
               onClick={() => {
@@ -1348,7 +1684,10 @@ function _Chat() {
                         ></IconButton>
                       </div>
                       {isUser ? (
-                        <Avatar avatar={config.avatar} />
+                        // <Avatar avatar={config.avatar} />
+                          <AntAvatar
+                              size={{ xs: 24, sm: 32, md: 40, lg: 40, xl: 40, xxl: 40 }}
+                              className={styles.userAvatar} src={<img src={userInfo?.avatarUrl || ''} />} />
                       ) : (
                         <>
                           {["system"].includes(message.role) ? (
@@ -1366,7 +1705,9 @@ function _Chat() {
                     </div>
 
                     {showActions && (
+
                       <div className={styles["chat-message-actions"]}>
+
                         <div className={styles["chat-input-actions"]}>
                           {message.streaming ? (
                             <ChatAction
@@ -1450,30 +1791,99 @@ function _Chat() {
         })}
       </div>
 
-      {chatStore.currentSession().mask.modelConfig.model == 'gpt-4-vision-preview-(极速、联网支持、图片解读)-(1次/2500积分🔥)'
-      || chatStore.currentSession().mask.modelConfig.model == 'gemini-pro-vision-(极速、联网支持、识图)-(1次/1500积分🔥)' && (
-          <div style={{'marginBottom':'7px'}}>
-            <label style={{'color':'rgb(144 144 144)',fontSize:'13px',marginLeft:'20px'}}>该模型支持对图片文件进行提问，请上传图片,最大图片数量：5张，图片解读较正常文本回答耗时较长请耐心等待</label>
-            <br/>
-            {imgFileUrlList.length > 0 && (
-                <div style={{'display':'flex','marginTop':'10px'}}>
-                  {imgFileUrlList.map((imgFile, index) => (
-                      <div key={index} style={{'marginLeft':'10px'}}>
-                        <PhotoProvider>
-                          <PhotoView src={imgFile.imgUrl}>
-                            <img src={imgFile.imgUrl} alt="" width={50} height={50}/>
-                          </PhotoView>
-                        </PhotoProvider>
-                        <IconButton
-                                    icon={<DeleteIcon/>} onClick={() => handleRemoveImage(imgFile.imgUrl)}
-                        />
-                      </div>
-                  ))}
-                </div>
-            )}
-          </div>
+      <div style={{'margin':'20px',marginBottom:'1%',width:'30%',border:'1px #ff2222'}}>
+        <Upload
+            name={"files"}
+            accept="image/png, image/jpeg"
+            action={uploadFileUrl}
+            maxCount={1}
+            headers={{ Token: accessStore.accessCode }}
+            listType="picture"
+            showUploadList = {showUploadList}
+            onPreview={previewFile}
+            onRemove={handleUploadRemove}
+            beforeUpload={beforeUpload}
+            onChange={handleChange}
+        >
+          <IconButton
+              icon={<UploadIcon />}
+              className={styles["chat-input-upload"]}
+              // text={Locale.UI.Import}
+              bordered
+              // onClick={handleButtonClick}
+          />
+        </Upload>
+        {imgFileUrlList.length > 0 && (
+            <div style={{fontSize:'12px',width:'130px',fontWeight: 600}}>
+              {/*<a style={{display:'block',color:'rgb(29, 147, 171)',cursor:'pointer',backgroundColor:'rgba(0, 0, 0, .03)'*/}
+              {/*  ,marginBottom:'2px',padding:'4px',borderRadius:'3px',transition: 'background ease .2s'}}*/}
+              {/*   // onMouseEnter={handleMouseEnter}*/}
+              {/*   // onMouseLeave={handleMouseLeave}*/}
+              {/*   href={'#'}*/}
+              {/*   onClick={() => handleImg('从图像中提取文字')}*/}
+              {/*>*/}
+              {/*  从图像中提取文字 ➡</a>*/}
+              <a style={{display:'block',color:'rgb(29, 147, 171)'
+                ,cursor:'pointer',backgroundColor:'rgba(0, 0, 0, .03)',padding:'4px',borderRadius:'3px',transition: 'background ease .2s'}}
+                 // onMouseEnter={handleMouseEnter}
+                 // onMouseLeave={handleMouseLeave}
+                 href={'#'}
+                 onClick={() => handleImg('描述一下这张图片')}
+              >
+                描述以下这张图片 ➡</a>
+            </div>
+        )}
 
-      )}
+      </div>
+
+
+      {/*{chatStore.currentSession().mask.modelConfig.model.includes('月之暗面AI大模型') && (*/}
+      {/*    <div style={{'marginBottom':'7px'}}>*/}
+      {/*      <label style={{'color':'rgb(144 144 144)',fontSize:'13px',marginLeft:'20px'}}>该模型支持对文件进行提问，请上传文件，解读较正常文本回答耗时较长请耐心等待</label>*/}
+      {/*      <br/>*/}
+      {/*      {uploadLoading && (*/}
+      {/*          <span style={{color:"red",marginLeft:'15px'}}>数据上传中...</span>*/}
+      {/*      )}*/}
+
+      {/*      {imgFileUrlList.length > 0 && (*/}
+      {/*          <div style={{'display':'flex','marginTop':'10px'}}>*/}
+      {/*            {imgFileUrlList.map((imgFile, index) => (*/}
+      {/*                <div key={index} style={{'marginLeft':'10px'}}>*/}
+      {/*                  <span>附件+{index}</span>*/}
+      {/*                  <IconButton*/}
+      {/*                      icon={<DeleteIcon/>} onClick={() => handleRemoveImage(imgFile.imgUrl)}*/}
+      {/*                  />*/}
+      {/*                </div>*/}
+      {/*            ))}*/}
+      {/*          </div>*/}
+      {/*      )}*/}
+      {/*    </div>*/}
+
+      {/*)}*/}
+
+      {/*{chatStore.currentSession().mask.modelConfig.model == 'gemini-pro-vision-(极速、联网支持、识图)-(1次/1500积分🔥)' && (*/}
+      {/*    <div style={{'marginBottom':'7px'}}>*/}
+      {/*      <label style={{'color':'rgb(144 144 144)',fontSize:'13px',marginLeft:'20px'}}>该模型支持对图片文件进行提问，请上传图片,最大图片数量：5张，图片解读较正常文本回答耗时较长请耐心等待</label>*/}
+      {/*      <br/>*/}
+      {/*      {imgFileUrlList.length > 0 && (*/}
+      {/*          <div style={{'display':'flex','marginTop':'10px'}}>*/}
+      {/*            {imgFileUrlList.map((imgFile, index) => (*/}
+      {/*                <div key={index} style={{'marginLeft':'10px'}}>*/}
+      {/*                  <PhotoProvider>*/}
+      {/*                    <PhotoView src={imgFile.imgUrl}>*/}
+      {/*                      <img src={imgFile.imgUrl} alt="" width={50} height={50}/>*/}
+      {/*                    </PhotoView>*/}
+      {/*                  </PhotoProvider>*/}
+      {/*                  <IconButton*/}
+      {/*                              icon={<DeleteIcon/>} onClick={() => handleRemoveImage(imgFile.imgUrl)}*/}
+      {/*                  />*/}
+      {/*                </div>*/}
+      {/*            ))}*/}
+      {/*          </div>*/}
+      {/*      )}*/}
+      {/*    </div>*/}
+
+      {/*)}*/}
 
       <div className={styles["chat-input-panel"]}>
         <PromptHints prompts={promptHints} onPromptSelect={onPromptSelect} />
@@ -1495,33 +1905,38 @@ function _Chat() {
           }}
         />
         <div className={styles["chat-input-panel-inner"]}>
-          {'gpt-4-vision-preview-(极速、联网支持、图片解读)-(1次/2500积分🔥)' == chatStore.currentSession().mask.modelConfig.model && (
-              <div style={{marginRight:'10px',height:'79px'}}>
-                <input type="file" onChange={handleFileSubmit} style={{ display: 'none' }} ref={fileInputRef} multiple accept="image/*"/>
-                <IconButton
-                    icon={<UploadIcon />}
-                    className={styles["chat-input-upload"]}
-                    // text={Locale.UI.Import}
-                    bordered
-                    onClick={handleButtonClick}
+          {/*<div style={{marginRight:'10px',height:'79px'}}>*/}
+            {/*<input type="file" onChange={handleFileSubmit} style={{ display: 'none' }} ref={fileInputRef} multiple accept="image/*"/>*/}
 
-                />
-              </div>
-          )}
+          {/*</div>*/}
+          {/*{chatStore.currentSession().mask.modelConfig.model.includes('月之暗面AI大模型') && (*/}
+          {/*    <div style={{marginRight:'10px',height:'79px'}}>*/}
+          {/*      <input type="file" onChange={handleFileSubmit} style={{ display: 'none' }} ref={fileInputRef}/>*/}
+          {/*      <IconButton*/}
+          {/*          icon={<UploadIcon />}*/}
+          {/*          className={styles["chat-input-upload"]}*/}
+          {/*          // text={Locale.UI.Import}*/}
+          {/*          bordered*/}
+          {/*          onClick={handleButtonClick}*/}
 
-          {'gemini-pro-vision-(极速、联网支持、识图)-(1次/1500积分🔥)' == chatStore.currentSession().mask.modelConfig.model && (
-              <div style={{marginRight:'10px',height:'79px'}}>
-                <input type="file" onChange={handleFileSubmit} style={{ display: 'none' }} ref={fileInputRef} multiple accept="image/*"/>
-                <IconButton
-                    icon={<UploadIcon />}
-                    className={styles["chat-input-upload"]}
-                    // text={Locale.UI.Import}
-                    bordered
-                    onClick={handleButtonClick}
+          {/*      />*/}
+          {/*    </div>*/}
+          {/*)}*/}
 
-                />
-              </div>
-          )}
+
+          {/*{'gemini-pro-vision-(极速、联网支持、识图)-(1次/1500积分🔥)' == chatStore.currentSession().mask.modelConfig.model && (*/}
+          {/*    <div style={{marginRight:'10px',height:'79px'}}>*/}
+          {/*      <input type="file" onChange={handleFileSubmit} style={{ display: 'none' }} ref={fileInputRef} multiple accept="image/*"/>*/}
+          {/*      <IconButton*/}
+          {/*          icon={<UploadIcon />}*/}
+          {/*          className={styles["chat-input-upload"]}*/}
+          {/*          // text={Locale.UI.Import}*/}
+          {/*          bordered*/}
+          {/*          onClick={handleButtonClick}*/}
+
+          {/*      />*/}
+          {/*    </div>*/}
+          {/*)}*/}
 
           <textarea
             ref={inputRef}

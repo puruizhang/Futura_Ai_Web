@@ -7,7 +7,7 @@ import { ChatGPTApi } from "./platforms/openai";
 export const ROLES = ["system", "user", "assistant"] as const;
 export type MessageRole = (typeof ROLES)[number];
 
-export const Models = ["gpt-3.5-turbo", "gpt-4"] as const;
+export const Models = ["GPT-3.5-TURBO"] as const;
 export type ChatModel = ModelType;
 
 export interface RequestMessage {
@@ -132,13 +132,15 @@ export const api = new ClientApi();
 export function getHeaders() {
   // const chatStore = useChatStore();
   // const session = chatStore.currentSession();
-  // console.log('session123')
-  console.dir(useChatStore.getState().currentSession())
   const accessStore = useAccessStore.getState();
-  const headers: { "x-requested-with": string; Token: any; sessionId: any; isContext: any;isNet: any; "Content-Type": string } = {
+  const lastindex = useChatStore.getState().currentSession().messages.length > 0 ? useChatStore.getState().currentSession().messages.length - 1 : 0;
+  console.log(useChatStore.getState().currentSession())
+  // const model = useChatStore.getState().currentSession().messages[lastindex].model?.toString();
+  const headers: { "x-requested-with": string; Token: any;Model :string; sessionId: any; isContext: any;isNet: any; "Content-Type": string } = {
     "Content-Type": "application/json",
     "x-requested-with": "XMLHttpRequest",
     'Token': accessStore.accessCode,
+    'Model' : encodeURIComponent(useChatStore.getState().currentSession().mask.modelConfig.model),
     'sessionId':useChatStore.getState().currentSession().id,
     // 当前会话是否启用上下文
     'isContext' : useChatStore.getState().currentSession().isContext != undefined ? useChatStore.getState().currentSession().isContext : false,

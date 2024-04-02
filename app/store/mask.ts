@@ -1,8 +1,8 @@
 import { BUILTIN_MASKS } from "../masks";
 import { getLang, Lang } from "../locales";
 import { DEFAULT_TOPIC, ChatMessage } from "./chat";
-import { ModelConfig, useAppConfig } from "./config";
-import { StoreKey } from "../constant";
+import {ModelConfig, ModelType, useAppConfig} from "./config";
+import {DEFAULT_INPUT_TEMPLATE, StoreKey} from "../constant";
 import { nanoid } from "nanoid";
 import { createPersistStore } from "../utils/store";
 
@@ -33,7 +33,19 @@ export const createEmptyMask = () =>
     name: DEFAULT_TOPIC,
     context: [],
     syncGlobalConfig: true, // use global config as default
-    modelConfig: { ...useAppConfig.getState().modelConfig },
+    modelConfig:{
+        model: "GPT-3.5-TURBO" as ModelType,
+        temperature: 0.5,
+        top_p: 1,
+        max_tokens: 4000,
+        presence_penalty: 0,
+        frequency_penalty: 0,
+        sendMemory: true,
+        historyMessageCount: 4,
+        compressMessageLengthThreshold: 1000,
+        enableInjectSystemPrompts: false,
+        template: DEFAULT_INPUT_TEMPLATE,
+    },
     lang: getLang(),
     builtin: false,
     createdAt: Date.now(),
