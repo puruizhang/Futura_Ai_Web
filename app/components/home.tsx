@@ -889,7 +889,7 @@ function Screen() {
 
                     </li>
                     <li className={styles.menuRouterli}>
-                      <a href='https://ai-api.mafutura.top' target='_blank' className={styles.menu_menuRouterA}>
+                      <a href='https://api.mafutura.top' target='_blank' className={styles.menu_menuRouterA}>
                         <img src={GPTZhuanPng.src}
                              style={{maxWidth: '150px',
                                maxHeight: '45px',marginTop: '5px',border: '1px solid #f0f0f0' }}

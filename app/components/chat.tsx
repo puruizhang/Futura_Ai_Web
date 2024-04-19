@@ -665,6 +665,7 @@ export function ChatActions(props: {
     localStorage.setItem('tourFinish', 'true');
   }
 
+  const [hasFetchedModelList, setHasFetchedModelList] = useState(false);
 
   useEffect(() => {
     // if current model is not available
@@ -692,13 +693,16 @@ export function ChatActions(props: {
       setNetColor('netInitialColor');
     }
     // 获取模型列表
-    modelList();
+    if (!hasFetchedModelList) {
+      modelList();
+      setHasFetchedModelList(true);
+    }
 
     if(localStorage.getItem('tourFinish') == 'true'){
       setOpen(false);
     }
 
-  }, [chatStore, currentModel, models]);
+  }, [chatStore, currentModel, models,hasFetchedModelList]);
 
   return (
     <>
